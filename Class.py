@@ -1,9 +1,10 @@
 import sys
-import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
+import math
 
-'''This allows us to create sample data sets'''
 
+# This allows us to create sample data sets
 
 def spiral_data(points, classes):
     X = np.zeros((points * classes, 2))
@@ -16,22 +17,25 @@ def spiral_data(points, classes):
         y[ix] = class_number
     return X, y
 
-
+#our sample dataset
 X, y = spiral_data(100, 3)
+plt.scatter(X[:,0], X[:,1])
+plt.show()
+plt.scatter(X[:,0], X[:,1], c=y, cmap="brg")
+plt.show()
 
-'''Class to create a Dense Layer object that takes dot product of X*W + B'''
-
+# Class to create a Dense Layer object that takes dot product of X*W + B
 
 class Layer_Dense:
     def __init__(self, n_inputs, n_neurons):
-        self.weights = 0.10 * np.random.randn(n_inputs, n_neurons)
+        self.weights = 0.01 * np.random.randn(n_inputs, n_neurons)
         self.biases = np.zeros((1, n_neurons))
 
     def forward(self, inputs):
         self.output = np.dot(inputs, self.weights) + self.biases
 
 
-'''Rectified Linear Function'''
+# Rectified Linear Function
 
 
 class Activation_ReLU:
@@ -39,7 +43,7 @@ class Activation_ReLU:
         self.output = np.maximum(0, inputs)
 
 
-'''Using Softmax function'''
+# Using Softmax function to turn  logits into probabilities
 
 
 class Activation_Softmax:
@@ -55,13 +59,34 @@ class Activation_Softmax:
                                             keepdims=True)
         self.output = probabilities
 
+# Cross-Entropy calculation (Loss)
+class Cross_Entropy:
 
-layer1 = Layer_Dense(2, 3)
-layer2 = Layer_Dense(3, 3)
+    def forward(self, y_pred, y_true):
+
+        # Number of samples in a batch
+        samples = len(y_pred)
+
+        # Probabilities for target values
+        y_pred = y_pred[range(samples), y_true]
+
+        # Losses
+        negative_log_likelihoods = -np.log(y_pred)
+
+        # Overall loss
+        data_loss = np.mean(negative_log_likelihoods)
+        return data_loss
+
+dense1 = Layer_Dense(2, 3)
+dense2 = Layer_Dense(3, 3)
 activation1 = Activation_ReLU()
 activation2 = Activation_Softmax()
-layer1.forward(X)
-activation1.forward(layer1.output)
-layer2.forward(activation1.output)
-activation2.forward(layer2.output)
-print(activation2.output[:5])
+lossFunction = Cross_Entropy()
+dense1.forward(X)
+activation1.forward(dense1.output)
+dense2.forward(activation1.output)
+activation2.forward(dense2.output)
+loss = lossFunction.forward(activation2.output, y)
+
+print(activation2.output)
+print(loss)
